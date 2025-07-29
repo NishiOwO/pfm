@@ -24,6 +24,11 @@ const
 	UIBorderRB : Integer = 3;
 	UIBorderLR : Integer = 4;
 	UIBorderTB : Integer = 5;
+	UIBorderLV : Integer = 6;
+	UIBorderRV : Integer = 7;
+	UIBorderTH : Integer = 8;
+	UIBorderBH : Integer = 9;
+	UIVersion : String = '0.0.0';
 
 implementation
 uses
@@ -104,7 +109,7 @@ function UIGetBorder() : TUIBorderList;
 var
 	R : TUIBorderList;
 begin
-	SetLength(R, 6);
+	SetLength(R, 10);
 {$ifdef windows}
 	R[UIBorderLT] := #218;
 	R[UIBorderRT] := #191;
@@ -112,6 +117,10 @@ begin
 	R[UIBorderRB] := #217;
 	R[UIBorderLR] := #179;
 	R[UIBorderTB] := #196;
+	R[UIBorderLV] := #195;
+	R[UIBorderRV] := #180;
+	R[UIBorderTH] := #194;
+	R[UIBorderBH] := #193;
 {$else}
 	R[UIBorderLT] := '┌';
 	R[UIBorderRT] := '┐';
@@ -119,6 +128,10 @@ begin
 	R[UIBorderRB] := '┘';
 	R[UIBorderLR] := '│';
 	R[UIBorderTB] := '─';
+	R[UIBorderLV] := '├';
+	R[UIBorderRV] := '┤';
+	R[UIBorderTH] := '┬';
+	R[UIBorderBH] := '┴';
 {$endif}
 	UIGetBorder := R;
 end;
@@ -266,7 +279,11 @@ var
 	TagStr : String;
 	FGCol : Byte;
 	BGCol : Byte;
+	BXChr : String;
+	Border : TUIBorderList;
 begin
+	Border := UIGetBorder();
+
 	ScreenGetSize(@X, @Y);
 	UIPushColor(FG, BG);
 	UIBox(Floor((X - W) / 2), Floor((Y - H) / 2), W, H);
@@ -318,9 +335,23 @@ begin
 			else if not(BGCol = $ff) then UIPushColor(ColorStack[Length(ColorStack) - 2], BGCol)
 			else
 			begin
-				if TagStr = 'POPCOLOR' then
+				if TagStr = 'POPCOLOR' then UIPopColor()
+				else if (Length(TagStr) > 2) and (Copy(TagStr, 1, 1) = 'B') and (Copy(TagStr, 2, 1) = 'X') then
 				begin
-					UIPopColor();
+					BXChr := ' ';
+					if TagStr = 'BXLT' then BXChr := Border[UIBorderLT]
+					else if TagStr = 'BXRT' then BXChr := Border[UIBorderRT]
+					else if TagStr = 'BXLB' then BXChr := Border[UIBorderLB]
+					else if TagStr = 'BXRB' then BXChr := Border[UIBorderRB]
+					else if TagStr = 'BXLR' then BXChr := Border[UIBorderLR]
+					else if TagStr = 'BXTB' then BXChr := Border[UIBorderTB]
+					else if TagStr = 'BXLV' then BXChr := Border[UIBorderLV]
+					else if TagStr = 'BXRV' then BXChr := Border[UIBorderRV]
+					else if TagStr = 'BXTH' then BXChr := Border[UIBorderTH]
+					else if TagStr = 'BXBH' then BXChr := Border[UIBorderBH];
+					ScreenGotoXY(Floor((X - MaxLen) / 2) + CX, Floor((Y - H) / 2) + 1 + CY);
+					CX := CX + 1;
+					Write(BXChr);
 				end;
 			end;
 		end
@@ -419,14 +450,23 @@ begin
 	Welcome := '';
 
 	Welcome := Welcome + 'Welcome to...' + #10;
-	Welcome := Welcome + '+---+ +---- +-+-+' + #10;
-	Welcome := Welcome + '|   | |     | | |' + #10;
-	Welcome := Welcome + '+---+ +---- | | |' + #10;
-	Welcome := Welcome + '|     |     | | |' + #10;
-	Welcome := Welcome + '|     |     | | | - <FGBLUE>Pascal File Manager<POPCOLOR>' + #10;
+	Welcome := Welcome + '<BXTH><BXTB><BXRT><BXSP><BXTH><BXTB><BXRT><BXSP><BXLT><BXTB><BXTH><BXTB><BXRT>' + #10;
+	Welcome := Welcome + '<BXLR><BXSP><BXLR><BXSP><BXLR><BXSP><BXSP><BXSP><BXLR><BXSP><BXLR><BXSP><BXLR>' + #10;
+	Welcome := Welcome + '<BXLV><BXTB><BXRB><BXSP><BXLV><BXTB><BXRV><BXSP><BXLR><BXSP><BXLR><BXSP><BXLR>' + #10;
+	Welcome := Welcome + '<BXLR><BXSP><BXSP><BXSP><BXLR><BXSP><BXSP><BXSP><BXLR><BXSP><BXLR><BXSP><BXLR> - <FGBLUE>Pascal File Manager<POPCOLOR>' + #10;
+	Welcome := Welcome + '<BXBH><BXSP><BXSP><BXSP><BXBH><BXSP><BXSP><BXSP><BXBH><BXSP><BXSP><BXSP><BXBH>' + #10;
 	Welcome := Welcome + #10;
 	Welcome := Welcome + 'Copyright (C) 2025 Nishi and contributors...' + #10;
 	Welcome := Welcome + '<FGBLUE>PFM<POPCOLOR> is licensed under the 3-clause BSD license' + #10;
+	Welcome := Welcome + #10;
+	Welcome := Welcome + 'Version <FGYELLOW><BGBLUE> ' + UIVersion + ' <POPCOLOR><POPCOLOR> - <FGYELLOW><BGBLUE>';
+{$ifdef RELEASE}
+	Welcome := Welcome + ' Release ';
+{$endif}
+{$ifdef DEBUG}
+	Welcome := Welcome + ' Debug ';
+{$endif}
+	Welcome := Welcome + '<POPCOLOR><POPCOLOR> Build' + #10;
 
 	UIInfo(Welcome);
 end;

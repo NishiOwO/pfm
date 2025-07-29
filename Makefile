@@ -9,7 +9,7 @@ all: bin/pfm$(EXEC)
 
 bin/pfm$(EXEC): src/*.pas $(RES)
 	mkdir -p bin obj
-	$(FPC) -Mobjfpc -Sh -Fusrc -FUobj -FEbin src/pfm.pas
+	$(FPC) -dRELEASE -Mobjfpc -Sh -Fusrc -FUobj -FEbin src/pfm.pas
 
 clean:
 	rm -f obj/* bin/*
