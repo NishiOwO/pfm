@@ -5,6 +5,7 @@ FPC = fpc
 all: bin/pfm
 
 bin/pfm: src/*.pas
+	mkdir -p bin obj
 	$(FPC) -Mobjfpc -Sh -Fusrc -FUobj -FEbin src/pfm.pas
 
 clean:
