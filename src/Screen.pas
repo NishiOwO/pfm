@@ -26,9 +26,10 @@ const
 	ScreenWhite : Integer = 7;
 
 implementation
-{$ifdef unix}
 uses
+	Keyboard,
 	Sysutils,
+{$ifdef unix}
 	BaseUnix,
 	Termio;
 
@@ -43,11 +44,6 @@ end;
 procedure ScreenGotoXY(X : Integer; Y : Integer);
 begin
 	Write(#27 + '[' + IntToStr(Y + 1) + ';' + IntToStr(X + 1) + 'H');
-end;
-
-function ScreenReadKey() : Char;
-begin
-	ScreenReadKey := #0;
 end;
 
 procedure ScreenSetFG(FG : Byte);
@@ -87,7 +83,7 @@ begin
 	TCGetAttr(1, OldT);
 	TCGetAttr(1, NewT);
 
-	NewT.c_lflag := NewT.c_lflag and not(ECHO);
+	NewT.c_lflag := NewT.c_lflag and not(ECHO or ICANON);
 
 	TCSetAttr(1, TCSANOW, NewT);
 end;
@@ -101,8 +97,6 @@ begin
 end;
 {$endif}
 {$ifdef windows}
-uses
-	Sysutils,
 	Windows;
 
 const
@@ -142,11 +136,6 @@ begin
 	C.Y := Y;
 
 	SetConsoleCursorPosition(Std, C);
-end;
-
-function ScreenReadKey() : Char;
-begin
-	ScreenReadKey := #0;
 end;
 
 procedure ScreenSetFG(FG : Byte);
@@ -229,6 +218,7 @@ begin
 	SetConsoleCP(437);
 	SetConsoleOutputCP(437);
 	ScreenHideCursor();
+	InitKeyboard();
 end;
 
 procedure ScreenDeinit();
@@ -237,5 +227,17 @@ begin
 	ScreenClear();
 end;
 {$endif}
+
+function ScreenReadKey() : Char;
+var
+	K : TKeyEvent;
+	C : Char;
+begin
+	K := GetKeyEvent();
+	K := TranslateKeyEvent(K);
+	C := GetKeyEventChar(K);
+	if C = #10 then C := #13;
+	ScreenReadKey := C;
+end;
 
 end.

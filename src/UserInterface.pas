@@ -11,6 +11,7 @@ function UIGetBorder() : TUIBorderList;
 procedure UIBox(X : Integer; Y : Integer; W : Integer; H : Integer);
 procedure UIPushColor(FG : Byte; BG : Byte);
 procedure UIPopColor();
+procedure UIDeinit();
 
 const
 	UIBorderLT : Integer = 1;
@@ -116,6 +117,10 @@ begin
 	Write(' Error ');
 	ScreenGotoXY(Floor((X - Length(Content)) / 2), Floor((Y - H) / 2) + 1);
 	Write(Content);
+	ScreenGotoXY(Floor((X - 8) / 2), Floor((Y - H) / 2) + 4);
+	UIPushColor(ScreenRed, ScreenWhite);
+	Write(' < OK > ');
+	UIPopColor();
 	UIPopColor();
 	repeat until ScreenReadKey() = #13;
 end;
@@ -124,6 +129,11 @@ function UIExit(WasItBreak : Boolean) : Boolean;
 begin
 	ScreenDeinit();
 	UIExit := False;
+end;
+
+procedure UIDeinit();
+begin
+	UIExit(False);
 end;
 
 procedure UIExit2();

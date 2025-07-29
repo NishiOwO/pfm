@@ -5,4 +5,5 @@ uses
 
 begin
 	UIInit();
+	UIDeinit();
 end.
