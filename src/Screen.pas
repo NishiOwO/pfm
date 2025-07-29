@@ -6,7 +6,7 @@ type
 
 procedure ScreenClear();
 procedure ScreenGotoXY(X : Integer; Y : Integer);
-function ScreenReadKey() : Char;
+function ScreenReadKey() : Word;
 procedure ScreenSetFG(FG : Byte);
 procedure ScreenSetBG(BG : Byte);
 procedure ScreenShowCursor();
@@ -150,7 +150,7 @@ begin
 		Exit;
 	end;
 
-	C := CSBI.wAttributes and 65520;
+	C := CSBI.wAttributes and $fff0;
 	C := C or Win32Color[FG];
 
 	SetConsoleTextAttribute(Std, C);
@@ -170,7 +170,7 @@ begin
 		Exit;
 	end;
 
-	C := CSBI.wAttributes and 65295;
+	C := CSBI.wAttributes and $ff0f;
 	C := C or (Win32Color[BG] shl 4);
 
 	SetConsoleTextAttribute(Std, C);
@@ -228,15 +228,15 @@ begin
 end;
 {$endif}
 
-function ScreenReadKey() : Char;
+function ScreenReadKey() : Word;
 var
 	K : TKeyEvent;
-	C : Char;
+	C : Word;
 begin
 	K := GetKeyEvent();
 	K := TranslateKeyEvent(K);
-	C := GetKeyEventChar(K);
-	if C = #10 then C := #13;
+	C := Word(GetKeyEventChar(K));
+	if C = 10 then C := 13;
 	ScreenReadKey := C;
 end;
 
