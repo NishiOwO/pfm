@@ -1,10 +1,13 @@
 FPC = fpc
+MK = generic
+
+include mk/$(MK).mk
 
 .PHONY: all clean
 
-all: bin/pfm
+all: bin/pfm$(EXEC)
 
-bin/pfm: src/*.pas
+bin/pfm$(EXEC): src/*.pas $(RES)
 	mkdir -p bin obj
 	$(FPC) -Mobjfpc -Sh -Fusrc -FUobj -FEbin src/pfm.pas
 

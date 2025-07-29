@@ -14,15 +14,16 @@ procedure UIPopColor();
 procedure UIDeinit();
 procedure UIButtonReset();
 procedure UILoop();
+procedure UIShowWelcome();
 procedure UIButton(X : Integer; Y : Integer; W : Integer; H : Integer; Show : String);
 
 const
-	UIBorderLT : Integer = 1;
-	UIBorderRT : Integer = 2;
-	UIBorderLB : Integer = 3;
-	UIBorderRB : Integer = 4;
-	UIBorderLR : Integer = 5;
-	UIBorderTB : Integer = 6;
+	UIBorderLT : Integer = 0;
+	UIBorderRT : Integer = 1;
+	UIBorderLB : Integer = 2;
+	UIBorderRB : Integer = 3;
+	UIBorderLR : Integer = 4;
+	UIBorderTB : Integer = 5;
 
 implementation
 uses
@@ -411,22 +412,10 @@ begin
 end;
 {$endif}
 
-procedure UIInit();
+procedure UIShowWelcome();
 var
 	Welcome : String;
 begin
-	SetLength(ColorStack, 0);
-	SysSetCtrlBreakHandler(@UIExit);
-	AddExitProc(@UIExit2);
-{$ifdef unix}
-	FpSignal(SIGINT, @UIExit3);
-	FpSignal(SIGTERM, @UIExit3);
-	FpSignal(SIGWINCH, @UIResize);
-{$endif}
-	ScreenInit();
-	UIPushColor(ScreenWhite, ScreenBlue);
-	UIRedraw();
-
 	Welcome := '';
 
 	Welcome := Welcome + 'Welcome to...' + #10;
@@ -440,6 +429,22 @@ begin
 	Welcome := Welcome + '<FGBLUE>PFM<POPCOLOR> is licensed under the 3-clause BSD license' + #10;
 
 	UIInfo(Welcome);
+end;
+
+procedure UIInit();
+begin
+	SetLength(ColorStack, 0);
+	SysSetCtrlBreakHandler(@UIExit);
+	AddExitProc(@UIExit2);
+{$ifdef unix}
+	FpSignal(SIGINT, @UIExit3);
+	FpSignal(SIGTERM, @UIExit3);
+	FpSignal(SIGWINCH, @UIResize);
+{$endif}
+	ScreenInit();
+	UIPushColor(ScreenWhite, ScreenBlue);
+	UIRedraw();
+	UIShowWelcome();
 end;
 
 procedure UILoop();
