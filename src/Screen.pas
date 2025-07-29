@@ -46,14 +46,22 @@ begin
 	Write(#27 + '[' + IntToStr(Y + 1) + ';' + IntToStr(X + 1) + 'H');
 end;
 
+function ShouldBeBright(C : Byte) : Boolean;
+begin
+	if (C = ScreenRed) or (C = ScreenYellow) then ShouldBeBright := True
+	else ShouldBeBright := False;
+end;
+
 procedure ScreenSetFG(FG : Byte);
 begin
-	Write(#27 + '[' + IntToStr(30 + FG) + 'm');
+	if ShouldBeBright(FG) then Write(#27 + '[' + IntToStr(90 + FG) + 'm')
+	else Write(#27 + '[' + IntToStr(30 + FG) + 'm');
 end;
 
 procedure ScreenSetBG(BG : Byte);
 begin
-	Write(#27 + '[' + IntToStr(40 + BG) + 'm');
+	if ShouldBeBright(BG) then Write(#27 + '[' + IntToStr(100 + BG) + 'm')
+	else Write(#27 + '[' + IntToStr(40 + BG) + 'm');
 end;
 
 procedure ScreenShowCursor();
