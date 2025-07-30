@@ -108,7 +108,7 @@ end;
 	Windows;
 
 const
-	Win32Color : Array of Integer = (0,12,10,12,9,13,8,15);
+	Win32Color : Array of Integer = (0,12,10,14,9,13,8,15);
 
 procedure ScreenClear();
 var
