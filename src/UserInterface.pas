@@ -536,6 +536,7 @@ begin
 	ScreenInit();
 	UIPushColor(ScreenWhite, ScreenBlue);
 	UIRedraw();
+	if ConfigShowWelcome then UIShowWelcome();
 end;
 
 procedure UILoop();

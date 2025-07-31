@@ -3,6 +3,7 @@ unit Config;
 interface
 var
 	ConfigFileAreaWidth : Integer;
+	ConfigShowWelcome : Boolean;
 
 procedure ConfigInit();
 procedure ConfigImport(Path : String);
@@ -26,9 +27,16 @@ begin
 	ConfigSet(Node, Key, IntToStr(Value));
 end;
 
+procedure ConfigSet(Node : TDOMNode; Key : String; Value : Boolean);
+begin
+	ConfigSet(Node, Key, BoolToStr(Value, True));
+end;
+
 procedure ConfigInit();
 begin
 	ConfigFileAreaWidth := 20;
+	ConfigShowWelcome := False;
+
 	CreateDir(GetAppConfigDir(False));
 	if not(FileExists(GetAppConfigDir(False) + 'config.xml')) then ConfigExport(GetAppConfigDir(False) + 'config.xml');
 	ConfigImport(GetAppConfigDir(False) + 'config.xml');
@@ -46,6 +54,10 @@ begin
 		if Element.NodeName = 'FileArea' then
 		begin
 			if Element.HasAttribute('Width') then ConfigFileAreaWidth := StrToInt(String(Element['Width']));
+		end
+		else if Element.NodeName = 'Welcome' then
+		begin
+			if Element.HasAttribute('Show') then ConfigShowWelcome := StrToBool(String(Element['Show']));
 		end;
 		Child := Child.NextSibling;
 	end;
@@ -86,6 +98,9 @@ begin
 	UI := Doc.CreateElement('UI');
 	Node := Doc.CreateElement('FileArea');
 	ConfigSet(Node, 'Width', ConfigFileAreaWidth);
+	UI.AppendChild(Node);
+	Node := Doc.CreateElement('Welcome');
+	ConfigSet(Node, 'Show', ConfigShowWelcome);
 	UI.AppendChild(Node);
 	Root.AppendChild(UI);
 
