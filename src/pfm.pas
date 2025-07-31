@@ -5,9 +5,11 @@ program pfm;
 {$endif}
 
 uses
-	UserInterface;
+	UserInterface,
+	Config;
 
 begin
+	ConfigInit();
 	UIInit();
 	UILoop();
 	UIDeinit();

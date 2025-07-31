@@ -3,6 +3,13 @@ unit UserInterface;
 interface
 type
 	TUIBorderList = Array of String;
+	TUIInvalidatedRect = record
+		X : Integer;
+		Y : Integer;
+		W : Integer;
+		H : Integer;
+		Invalidated : Boolean;
+	end;
 
 procedure UIInit();
 procedure UIRedraw();
@@ -16,6 +23,8 @@ procedure UIButtonReset();
 procedure UILoop();
 procedure UIShowWelcome();
 procedure UIButton(X : Integer; Y : Integer; W : Integer; H : Integer; Show : String);
+procedure UIInvalidateRect(X : Integer; Y : Integer; W : Integer; H : Integer);
+procedure UICheckAll();
 
 const
 	UIBorderLT : Integer = 0;
@@ -37,7 +46,8 @@ uses
 {$ifdef unix}
 	BaseUnix,
 {$endif}
-	Math;
+	Math,
+	Config;
 
 type
 	TButton = record
@@ -54,6 +64,7 @@ var
 	ColorStack : Array of Byte;
 	ButtonIndex : Integer;
 	SavedButtons : Array of TButton;
+	InvalidatedRect : TUIInvalidatedRect;
 
 procedure UIButtonReset();
 begin
@@ -162,22 +173,26 @@ begin
 	ScreenGotoXY(0, 0);
 end;
 
+procedure UIInvalidateRect(X : Integer; Y : Integer; W : Integer; H : Integer);
+begin
+	InvalidatedRect.X := X;
+	InvalidatedRect.Y := Y;
+	InvalidatedRect.W := W;
+	InvalidatedRect.H := H;
+	InvalidatedRect.Invalidated := True;
+end;
+
 procedure UIRedraw();
 var
 	X : Integer;
 	Y : Integer;
-	I : Integer;
 begin
 	ScreenClear();
 	ScreenGetSize(@X, @Y);
 	ScreenGotoXY(0, 0);
 
-	UIPushColor(ScreenBlack, ScreenCyan);
-	for I := 0 to (X - 1) do Write(' ');
-	UIPopColor();
-
-	UIBox(0, 1, Floor(X / 2), Y - 1);
-	UIBox(Floor(X / 2), 1, X - Floor(X / 2), Y - 1);
+	UIInvalidateRect(0, 0, X, Y);
+	UICheckAll();
 end;
 
 function UIButtonLoop() : Integer;
@@ -377,7 +392,7 @@ begin
 
 	UIButtonReset();
 
-	UIRedraw();
+	UIInvalidateRect(Floor((X - W) / 2), Floor((Y - H) / 2), W, H);
 end;
 
 function UIPopup(W : Integer; H : Integer; FG : Byte; BG : Byte; Title : String; Content : String) : Integer;
@@ -471,6 +486,42 @@ begin
 	UIInfo(Welcome);
 end;
 
+procedure UICheckAll();
+var
+	X : Integer;
+	Y : Integer;
+	I : Integer;
+begin
+	if not(InvalidatedRect.Invalidated) then Exit;
+
+	ScreenGetSize(@X, @Y);
+
+	if InvalidatedRect.Y = 0 then
+	begin
+		ScreenGotoXY(0, 0);
+		UIPushColor(ScreenBlack, ScreenCyan);
+		for I := 0 to (X - 1) do Write(' ');
+		UIPopColor();
+	end;
+
+	if (InvalidatedRect.X >= 0) and (InvalidatedRect.X <= (X - ConfigFileAreaWidth)) and ((InvalidatedRect.Y + InvalidatedRect.H) >= 1) then
+	begin
+		UIBox(0, 1, X - ConfigFileAreaWidth, Y - 1);
+	end;
+
+	if ((InvalidatedRect.X + InvalidatedRect.W) >= (X - ConfigFileAreaWidth)) and ((InvalidatedRect.Y + InvalidatedRect.H) >= 1) then
+	begin
+		UIBox(X - ConfigFileAreaWidth, 1, ConfigFileAreaWidth, 3);
+	end;
+
+	if ((InvalidatedRect.X + InvalidatedRect.W) >= (X - ConfigFileAreaWidth)) and ((InvalidatedRect.Y + InvalidatedRect.H) >= (3 + 1)) then
+	begin
+		UIBox(X - ConfigFileAreaWidth, 3 + 1, ConfigFileAreaWidth, Y - 3 - 1);
+	end;
+
+	InvalidatedRect.Invalidated := False;
+end;
+
 procedure UIInit();
 begin
 	SetLength(ColorStack, 0);
@@ -481,15 +532,18 @@ begin
 	FpSignal(SIGTERM, @UIExit3);
 	FpSignal(SIGWINCH, @UIResize);
 {$endif}
+	InvalidatedRect.Invalidated := False;
 	ScreenInit();
 	UIPushColor(ScreenWhite, ScreenBlue);
 	UIRedraw();
-	UIShowWelcome();
 end;
 
 procedure UILoop();
 begin
-	while True do;
+	while True do
+	begin
+		UICheckAll();
+	end;
 end;
 
 end.
