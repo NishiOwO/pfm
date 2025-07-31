@@ -12,8 +12,19 @@ implementation
 uses
 	UserInterface,
 	DOM,
+	XMLRead,
 	XMLWrite,
 	Sysutils;
+
+procedure ConfigSet(Node : TDOMNode; Key : String; Value : String);
+begin
+	TDOMElement(Node)[UnicodeString(Key)] := UnicodeString(Value);
+end;
+
+procedure ConfigSet(Node : TDOMNode; Key : String; Value : Integer);
+begin
+	ConfigSet(Node, Key, IntToStr(Value));
+end;
 
 procedure ConfigInit();
 begin
@@ -23,10 +34,41 @@ begin
 	ConfigImport(GetAppConfigDir(False) + 'config.xml');
 end;
 
+procedure ConfigUI(Node : TDOMNode);
+var
+	Child : TDOMNode;
+	Element : TDOMElement;
+begin
+	Child := Node.FirstChild;
+	while Assigned(Child) do
+	begin
+		Element := TDOMElement(Child);
+		if Element.NodeName = 'FileArea' then
+		begin
+			if Element.HasAttribute('Width') then ConfigFileAreaWidth := StrToInt(String(Element['Width']));
+		end;
+		Child := Child.NextSibling;
+	end;
+end;
+
+procedure ConfigKey(Node : TDOMNode);
+begin
+end;
+
 procedure ConfigImport(Path : String);
 var
 	Doc : TXMLDocument;
+	Root, Node : TDOMNode;
 begin
+	ReadXMLFile(Doc, Path);
+	Root := Doc.DocumentElement;
+	Node := Root.FirstChild;
+	while Assigned(Node) do
+	begin
+		if Node.NodeName = 'UI' then ConfigUI(Node)
+		else if Node.NodeName = 'Key' then ConfigKey(Node);
+		Node := Node.NextSibling;
+	end;
 end;
 
 procedure ConfigExport(Path : String);
@@ -43,7 +85,7 @@ begin
 
 	UI := Doc.CreateElement('UI');
 	Node := Doc.CreateElement('FileArea');
-	TDOMElement(Node)['Width'] := UnicodeString(IntToStr(ConfigFileAreaWidth));
+	ConfigSet(Node, 'Width', ConfigFileAreaWidth);
 	UI.AppendChild(Node);
 	Root.AppendChild(UI);
 
