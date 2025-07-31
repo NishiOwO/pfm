@@ -6,9 +6,16 @@ program pfm;
 
 uses
 	UserInterface,
-	Config;
+	Config,
+	Sysutils;
+
+function GetAppName() : String;
+begin
+	GetAppName := 'PFM';
+end;
 
 begin
+	OnGetApplicationName := @GetAppName;
 	ConfigInit();
 	UIInit();
 	UILoop();

@@ -10,22 +10,29 @@ procedure ConfigExport(Path : String);
 
 implementation
 uses
-	DOM, XMLWrite, UserInterface;
+	UserInterface,
+	DOM,
+	XMLWrite,
+	Sysutils;
 
 procedure ConfigInit();
 begin
 	ConfigFileAreaWidth := 20;
-	ConfigExport('pfm.xml');
+	CreateDir(GetAppConfigDir(False));
+	if not(FileExists(GetAppConfigDir(False) + 'config.xml')) then ConfigExport(GetAppConfigDir(False) + 'config.xml');
+	ConfigImport(GetAppConfigDir(False) + 'config.xml');
 end;
 
 procedure ConfigImport(Path : String);
+var
+	Doc : TXMLDocument;
 begin
 end;
 
 procedure ConfigExport(Path : String);
 var
 	Doc : TXMLDocument;
-	Root, UI, Key, Comment : TDOMNode;
+	Root, UI, Key, Comment, Node : TDOMNode;
 begin
 	Doc := TXMLDocument.Create();
 
@@ -35,6 +42,9 @@ begin
 	Root.AppendChild(Comment);
 
 	UI := Doc.CreateElement('UI');
+	Node := Doc.CreateElement('FileArea');
+	TDOMElement(Node)['Width'] := UnicodeString(IntToStr(ConfigFileAreaWidth));
+	UI.AppendChild(Node);
 	Root.AppendChild(UI);
 
 	Key := Doc.CreateElement('Key');
